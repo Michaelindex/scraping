@@ -3,3 +3,5 @@ input.csv
 output.csv
 input-example.py
 input copy.csv
+outputlocal.csv
+outputbase.csv
