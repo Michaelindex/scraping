@@ -183,6 +183,11 @@ def main():
             print("\nNenhum dado encontrado pela IA. Mantendo dados originais.")
             resultados.append(row.to_dict())
 
+        # Adiciona delay de 1 minuto entre as requisições
+        if index < len(df_input) - 1:  # Não espera após o último item
+            print("\nAguardando 60 segundos antes da próxima requisição...")
+            time.sleep(60)
+
     # Cria o DataFrame de saída
     df_output = pd.DataFrame(resultados)
     
