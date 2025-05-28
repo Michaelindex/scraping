@@ -1,5 +1,6 @@
 import base64
 import os
+import time
 from google import genai
 from google.genai import types
 
@@ -9,6 +10,9 @@ nome_medico = "CARLOS"
 sobrenome_medico = "EDUARDO RYUJI NISHIO"
 
 def generate():
+    # Início da contagem de tempo
+    tempo_inicio = time.time()
+    
     try:
         # Lê a chave da API do arquivo
         with open("api.key", "r") as f:
@@ -97,8 +101,18 @@ def generate():
             config=generate_content_config,
         ):
             print(chunk.text, end="")
+            
+        # Fim da contagem de tempo
+        tempo_fim = time.time()
+        tempo_total = tempo_fim - tempo_inicio
+        print(f"\n\nTempo total de execução: {tempo_total:.2f} segundos")
+        
     except Exception as e:
         print(f"Erro ao gerar conteúdo: {e}")
+        # Mesmo em caso de erro, mostra o tempo decorrido
+        tempo_fim = time.time()
+        tempo_total = tempo_fim - tempo_inicio
+        print(f"\nTempo decorrido até o erro: {tempo_total:.2f} segundos")
 
 if __name__ == "__main__":
     generate()
