@@ -5,17 +5,17 @@ from google import genai
 from google.genai import types
 
 # Variáveis do médico
-crm_medico = "X"
-nome_medico = "Y"
-sobrenome_medico = "Z"
-especialidade_medica = "A"
-endereco_completo = "B"
-logradouro = "C"
-numero = "D"
-bairro = "E"
-cep = "F"
-cidade = "G"
-estado = "H"
+crm_medico = "2875"
+nome_medico = "CARLOS"
+sobrenome_medico = "EDUARDO RYUJI NISHIO"
+especialidade_medica = "Dermatologia"
+endereco_completo = "Av. Bosque da Saúde, 1645, Bosque da Saúde - São Paulo/SP, 04142-092"
+logradouro = "Av. Bosque da Saúde"
+numero = "1645"
+bairro = "Bosque da Saúde"
+cep = "04142-092"
+cidade = "São Paulo"
+estado = "SP"
 
 def generate():
     # Início da contagem de tempo

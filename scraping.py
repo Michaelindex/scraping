@@ -1,15 +1,20 @@
 import base64
 import os
 import time
+import pandas as pd
+import json
+import csv
 from google import genai
 from google.genai import types
 
-# Variáveis do médico
-crm_medico = "2875"
-nome_medico = "CARLOS"
-sobrenome_medico = "EDUARDO RYUJI NISHIO"
+def limpar_resposta_json(resposta):
+    # Remove a marcação ```json do início e fim
+    resposta = resposta.replace('```json', '').replace('```', '')
+    # Remove espaços em branco no início e fim
+    resposta = resposta.strip()
+    return resposta
 
-def generate():
+def generate(medico_data):
     # Início da contagem de tempo
     tempo_inicio = time.time()
     
@@ -31,15 +36,15 @@ def generate():
                 role="user",
                 parts=[
                     types.Part.from_text(text=f"""
-                    CRM_MEDICO: {crm_medico}
-                    NOME_MEDICO: {nome_medico}
-                    SOBRENOME_MEDICO: {sobrenome_medico}
+                    CRM_MEDICO: {medico_data['CRM']}
+                    NOME_MEDICO: {medico_data['Nome']}
+                    SOBRENOME_MEDICO: {medico_data['Sobrenome']}
 
-                    Atue como um assistente de extração de dados médicos. Sua tarefa é encontrar informações sobre o médico com [CRM_MEDICO={crm_medico}], [NOME_MEDICO={nome_medico}] [SOBRENOME_MEDICO={sobrenome_medico}] e retornar estritamente um objeto JSON contendo os seguintes campos: "Especialidade Médica", "Endereco Completo", "Logradouro", "Numero", "Complemento", "Bairro", "CEP", "Cidade", "Estado", "Telefone A1", "Telefone A2", "Celular A1", "Celular A2", "E-mail A1", "E-mail A2".
+                    Atue como um assistente de extração de dados médicos. Sua tarefa é encontrar informações sobre o médico com [CRM_MEDICO={medico_data['CRM']}], [NOME_MEDICO={medico_data['Nome']}] [SOBRENOME_MEDICO={medico_data['Sobrenome']}] e retornar estritamente um objeto JSON contendo os seguintes campos: "Especialidade Médica", "Endereco Completo", "Logradouro", "Numero", "Complemento", "Bairro", "CEP", "Cidade", "Estado", "Telefone A1", "Telefone A2", "Celular A1", "Celular A2", "E-mail A1", "E-mail A2".
 
                     **Instruções Cruciais:**
 
-                    1.  **Fonte Primária:** Utilize os dados "[CRM_MEDICO={crm_medico}]", "[NOME_MEDICO={nome_medico}]" e "[SOBRENOME_MEDICO={sobrenome_medico}]" para realizar a busca no Google.
+                    1.  **Fonte Primária:** Utilize os dados "[CRM_MEDICO={medico_data['CRM']}]", "[NOME_MEDICO={medico_data['Nome']}]" e "[SOBRENOME_MEDICO={medico_data['Sobrenome']}]" para realizar a busca no Google.
                     2.  **Foco do Endereço:** 
                         - As informações de "Endereco Completo", "Logradouro", "Numero", "Complemento", "Bairro", "CEP", "Cidade" e "Estado" devem ser do **local de atendimento/trabalho principal** do médico.
                         - O CEP DEVE ser extraído do endereço completo. Se o endereço completo estiver disponível, o CEP NÃO pode ser null.
@@ -81,7 +86,7 @@ def generate():
                     }}
 
                     Sua Tarefa:
-                    Para o médico com CRM: [CRM_MEDICO={crm_medico}], Nome: [NOME_MEDICO={nome_medico}], Sobrenome: [SOBRENOME_MEDICO={sobrenome_medico}], realize a busca e retorne o JSON conforme especificado.
+                    Para o médico com CRM: [CRM_MEDICO={medico_data['CRM']}], Nome: [NOME_MEDICO={medico_data['Nome']}], Sobrenome: [SOBRENOME_MEDICO={medico_data['Sobrenome']}], realize a busca e retorne o JSON conforme especificado.
                     """)
                 ],
             ),
@@ -95,17 +100,34 @@ def generate():
             response_mime_type="text/plain",
         )
 
+        response_text = ""
+        print("\nAguardando resposta da IA...")
         for chunk in client.models.generate_content_stream(
             model=model,
             contents=contents,
             config=generate_content_config,
         ):
+            response_text += chunk.text
             print(chunk.text, end="")
             
         # Fim da contagem de tempo
         tempo_fim = time.time()
         tempo_total = tempo_fim - tempo_inicio
-        print(f"\n\nTempo total de execução: {tempo_total:.2f} segundos")
+        print(f"\nTempo total de execução: {tempo_total:.2f} segundos")
+        
+        # Tenta converter a resposta em JSON
+        try:
+            print("\nTentando converter resposta em JSON...")
+            # Limpa a resposta antes de converter para JSON
+            response_text = limpar_resposta_json(response_text)
+            print("Resposta limpa:", response_text)
+            response_json = json.loads(response_text)
+            print("JSON convertido com sucesso!")
+            return response_json
+        except json.JSONDecodeError as e:
+            print(f"Erro ao decodificar JSON: {e}")
+            print("Resposta recebida:", response_text)
+            return None
         
     except Exception as e:
         print(f"Erro ao gerar conteúdo: {e}")
@@ -113,6 +135,77 @@ def generate():
         tempo_fim = time.time()
         tempo_total = tempo_fim - tempo_inicio
         print(f"\nTempo decorrido até o erro: {tempo_total:.2f} segundos")
+        return None
+
+def main():
+    # Lê o arquivo CSV de entrada
+    try:
+        print("Lendo arquivo input.csv...")
+        df_input = pd.read_csv('input.csv')
+        print(f"Arquivo lido com sucesso! {len(df_input)} registros encontrados.")
+    except Exception as e:
+        print(f"Erro ao ler o arquivo input.csv: {e}")
+        return
+
+    # Lista para armazenar os resultados
+    resultados = []
+
+    # Processa cada linha do CSV
+    for index, row in df_input.iterrows():
+        print(f"\n{'='*50}")
+        print(f"Processando médico {index + 1} de {len(df_input)}")
+        print(f"CRM: {row['CRM']}, Nome: {row['Nome']} {row['Sobrenome']}")
+        print(f"{'='*50}")
+        
+        # Cria um dicionário com os dados do médico
+        medico_data = {
+            'CRM': row['CRM'],
+            'Nome': row['Nome'],
+            'Sobrenome': row['Sobrenome']
+        }
+        
+        # Gera os dados usando a IA
+        resultado = generate(medico_data)
+        
+        if resultado:
+            print("\nDados encontrados pela IA:")
+            print(json.dumps(resultado, indent=2, ensure_ascii=False))
+            
+            # Combina os dados originais com os novos dados
+            dados_combinados = row.to_dict()
+            dados_combinados.update(resultado)
+            
+            print("\nDados combinados:")
+            print(json.dumps(dados_combinados, indent=2, ensure_ascii=False))
+            
+            resultados.append(dados_combinados)
+        else:
+            print("\nNenhum dado encontrado pela IA. Mantendo dados originais.")
+            resultados.append(row.to_dict())
+
+    # Cria o DataFrame de saída
+    df_output = pd.DataFrame(resultados)
+    
+    # Mostra o DataFrame antes de salvar
+    print("\nDataFrame final antes de salvar:")
+    print(df_output)
+    
+    # Salva o resultado em um novo CSV
+    try:
+        print("\nSalvando resultados em output.csv...")
+        df_output.to_csv('output.csv', index=False, quoting=csv.QUOTE_ALL)
+        print("Arquivo output.csv gerado com sucesso!")
+        
+        # Verifica se o arquivo foi criado e lê seu conteúdo
+        if os.path.exists('output.csv'):
+            print("\nVerificando conteúdo do arquivo output.csv:")
+            df_verificacao = pd.read_csv('output.csv')
+            print(df_verificacao)
+        else:
+            print("ERRO: Arquivo output.csv não foi criado!")
+            
+    except Exception as e:
+        print(f"Erro ao salvar o arquivo output.csv: {e}")
 
 if __name__ == "__main__":
-    generate()
+    main()
