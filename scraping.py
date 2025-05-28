@@ -4,9 +4,9 @@ from google import genai
 from google.genai import types
 
 # Variáveis do médico
-crm_medico = "X"
-nome_medico = "Y"
-sobrenome_medico = "Z"
+crm_medico = "2875"
+nome_medico = "CARLOS"
+sobrenome_medico = "EDUARDO RYUJI NISHIO"
 
 def generate():
     try:
@@ -44,6 +44,7 @@ def generate():
                         - "Telefone A1" e "Telefone A2": Devem ser números de telefone fixo COMPLETOS do **local de trabalho** do médico. NÃO aceite números truncados ou parciais.
                         - "Celular A1" e "Celular A2": Devem ser números de celular COMPLETOS **pessoais ou profissionais diretos** do médico. NÃO aceite números truncados ou parciais.
                         - Se encontrar apenas um número, preencha apenas o campo correspondente e deixe o outro como null.
+                        - Se encontrar números imcompletos não salve-os, é preferível que traga null do que número incompleto.
                     4.  **Foco dos E-mails:**
                         - "E-mail A1" e "E-mail A2": Podem ser o e-mail **profissional, pessoal do médico ou do local de trabalho**.
                         - Se encontrar apenas um e-mail, preencha apenas o campo correspondente e deixe o outro como null.
@@ -55,16 +56,9 @@ def generate():
                         - NUNCA retorne números de telefone truncados ou parciais.
                         - SEMPRE extraia o CEP do endereço completo quando disponível.
 
-                    **Exemplo de Entrada (Substitua com os dados reais):**
-
-                    * CRM_MEDICO: "123456SP"
-                    * NOME_MEDICO: "João"
-                    * SOBRENOME_MEDICO: "Silva"
-
                     **Exemplo de Saída Esperada (APENAS O JSON):**
 
-                    ```json
-                    {
+                    {{
                     "Especialidade Médica": "Cardiologia",
                     "Endereco Completo": "Rua das Palmeiras, 123, Sala 405, Centro, São Paulo, SP, 01000-000",
                     "Logradouro": "Rua das Palmeiras",
@@ -80,12 +74,10 @@ def generate():
                     "Celular A2": null,
                     "E-mail A1": "joao.silva.cardiologia@email.com",
                     "E-mail A2": "contato@clinicajoaosilva.com.br"
-                    }
-                    ```
+                    }}
 
                     Sua Tarefa:
                     Para o médico com CRM: [CRM_MEDICO={crm_medico}], Nome: [NOME_MEDICO={nome_medico}], Sobrenome: [SOBRENOME_MEDICO={sobrenome_medico}], realize a busca e retorne o JSON conforme especificado.
-
                     """)
                 ],
             ),
