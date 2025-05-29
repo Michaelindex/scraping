@@ -33,8 +33,8 @@ def preencher_campos_vazios(df_base, df_local, df_base_simple):
     
     # Mapeamento de colunas entre output.csv e outputbase.csv
     mapeamento_base = {
-        'Especialidade Médica': 'Medical specialty',
-        'Telefone A1': 'Phone A1',
+        'Especialidade Médica': 'Especialidade Médica',
+        'Telefone A1': 'Telefone A1',
         'E-mail A1': 'E-mail A1'
     }
     

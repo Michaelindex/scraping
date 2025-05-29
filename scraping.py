@@ -39,12 +39,13 @@ def generate(medico_data):
                     CRM_MEDICO: {medico_data['CRM']}
                     NOME_MEDICO: {medico_data['Nome']}
                     SOBRENOME_MEDICO: {medico_data['Sobrenome']}
+                    {'ESPECIALIDADE_MEDICA: ' + medico_data['Especialidade'] if 'Especialidade' in medico_data else ''}
 
-                    Atue como um assistente de extração de dados médicos. Sua tarefa é encontrar informações sobre o médico com [CRM_MEDICO={medico_data['CRM']}], [NOME_MEDICO={medico_data['Nome']}] [SOBRENOME_MEDICO={medico_data['Sobrenome']}] e retornar estritamente um objeto JSON contendo os seguintes campos: "Especialidade Médica", "Endereco Completo", "Logradouro", "Numero", "Complemento", "Bairro", "CEP", "Cidade", "Estado", "Telefone A1", "Telefone A2", "Celular A1", "Celular A2", "E-mail A1", "E-mail A2".
+                    Atue como um assistente de extração de dados médicos. Sua tarefa é encontrar informações sobre o médico com [CRM_MEDICO={medico_data['CRM']}], [NOME_MEDICO={medico_data['Nome']}] [SOBRENOME_MEDICO={medico_data['Sobrenome']}] {'e especialidade ' + medico_data['Especialidade'] if 'Especialidade' in medico_data else ''} e retornar estritamente um objeto JSON contendo os seguintes campos: "Especialidade Médica", "Endereco Completo", "Logradouro", "Numero", "Complemento", "Bairro", "CEP", "Cidade", "Estado", "Telefone A1", "Telefone A2", "Celular A1", "Celular A2", "E-mail A1", "E-mail A2".
 
                     **Instruções Cruciais:**
 
-                    1.  **Fonte Primária:** Utilize os dados "[CRM_MEDICO={medico_data['CRM']}]", "[NOME_MEDICO={medico_data['Nome']}]" e "[SOBRENOME_MEDICO={medico_data['Sobrenome']}]" para realizar a busca no Google.
+                    1.  **Fonte Primária:** Utilize os dados "[CRM_MEDICO={medico_data['CRM']}]", "[NOME_MEDICO={medico_data['Nome']}]" e "[SOBRENOME_MEDICO={medico_data['Sobrenome']}]" {'e especialidade ' + medico_data['Especialidade'] if 'Especialidade' in medico_data else ''} para realizar a busca no Google.
                     2.  **Foco do Endereço:** 
                         - As informações de "Endereco Completo", "Logradouro", "Numero", "Complemento", "Bairro", "CEP", "Cidade" e "Estado" devem ser do **local de atendimento/trabalho principal** do médico.
                         - O CEP DEVE ser extraído do endereço completo. Se o endereço completo estiver disponível, o CEP NÃO pode ser null.
@@ -163,6 +164,10 @@ def main():
             'Nome': row['Nome'],
             'Sobrenome': row['Sobrenome']
         }
+        
+        # Adiciona especialidade se disponível
+        if 'Especialidade Médica' in row and pd.notna(row['Especialidade Médica']) and row['Especialidade Médica'] != '':
+            medico_data['Especialidade'] = row['Especialidade Médica']
         
         # Gera os dados usando a IA
         resultado = generate(medico_data)
